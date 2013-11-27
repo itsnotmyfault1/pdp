@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <sys/time.h>
+#include "mpi.h"
+#include <omp.h>
 
 #define Tolerance 0.00001
 #define TRUE 1
@@ -57,8 +59,10 @@ if(MyRank==0){
          diff += fabs(A[i][j] - tmp);
        }
      }
+} else{
 //slaves
 //if rank<biggers, work on chunksize+1
+if(MyRank<biggers){int mywork=chunk_size+1;} else{int mywork=chunk_size;}
      for (i=1;i<n;i++)
      {
        for (j=1;j<n;j++)
