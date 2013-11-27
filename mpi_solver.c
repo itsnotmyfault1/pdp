@@ -24,18 +24,41 @@ int initialize (double **A, int n)
 
 }
 
-void solve(double **A, int n, int MyRank, int world_size)
+void solve(double **A, int n)
 {
    int convergence=FALSE;
    double diff, tmp;
    int i,j, iters=0;
-   int for_iters;
+   int for_iters, chunk_size, biggers;
+//start doing mpi things here
+int MyRank, world_size;
+MPI_Status status;
+MPI_Init(&argc, &argv);
+MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
+MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+//for static allocation
+chunk_size=floor(n/world_size); //the base chunk size
+biggers=n-chunk_size*world_size; //if your rank is < biggers, you work on chunk_size+1 rows
 
 
    for (for_iters=1;for_iters<21;for_iters++) 
    { 
      diff = 0.0;
-
+//master
+if(MyRank==0){
+  if(MyRank<biggers){int mywork=chunk_size+1;} else{int mywork=chunk_size;}
+     for (i=1;i<chunk_size;i++)
+     {
+       for (j=1;j<n;j++)
+       {
+         tmp = A[i][j];
+         A[i][j] = 0.2*(A[i][j] + A[i][j-1] + A[i-1][j] + A[i][j+1] + A[i+1][j]);
+         diff += fabs(A[i][j] - tmp);
+       }
+     }
+//slaves
+//if rank<biggers, work on chunksize+1
      for (i=1;i<n;i++)
      {
        for (j=1;j<n;j++)
@@ -76,15 +99,8 @@ int main(int argc, char * argv[])
 
    initialize(A, N);
    t_start=usecs();
-//start doing mpi things here
-int MyRank, world_size;
-MPI_Status status;
-MPI_Init(&argc, &argv);
-MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
-MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-   solve(A, N, MyRank, world_size);
 
-
+   solve(A, N);
 
    t_end=usecs();
 
