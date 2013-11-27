@@ -1,0 +1,32 @@
+N=100;
+A=zeros(N);
+A(:,1)=ones(N,1);
+A(1,:)=ones(1,N);
+B=A;
+accuracy=.0001;
+
+iteration=0;
+Anew=suckit(A);
+while max(max(abs(Anew-A)))>accuracy
+  A=Anew;
+  Anew=sovit(A);
+  iteration=iteration+1;
+end
+
+
+iteration2=0;
+Bnew=sovit(B);
+Bt=Bnew;
+while max(max(abs(Bnew-B)))>accuracy
+  B=Bnew;
+  Bt(1:N/2+1,:)=sovit(B(1:N/2+1,:));
+  Bnew(N/2:N,:)=sovit(B(N/2:N,:));
+  Bnew(1:N/2,:)=Bt(1:N/2,:);
+  iteration2=iteration2+1;
+end
+Anew(N/2,:);
+Bnew(N/2,:);
+iteration
+iteration2
+
+max(max(abs(Anew-Bnew)))

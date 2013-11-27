@@ -1,0 +1,11 @@
+#!/bin/bash
+for i in $(seq 1 2);
+do 
+	echo i
+	export OMP_NUM_THREADS=$i
+	./solver
+	./omp_solver
+	./omp_solver_static
+	./omp_solver_dynamic
+	./omp_solver_guided;
+done

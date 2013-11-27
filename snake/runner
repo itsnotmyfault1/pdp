@@ -1,0 +1,20 @@
+#!/bin/bash
+gcc -fopenmp solver.c -o solver
+gcc -fopenmp omp_solver.c -o omp_solver
+gcc -fopenmp omp_solver_static.c -o omp_solver_static
+gcc -fopenmp omp_solver_dynamic.c -o omp_solver_dynamic
+gcc -fopenmp omp_solver_guided.c -o omp_solver_guided
+
+for i in 1 2 4 8 16 32;
+do 
+	echo $i
+	export OMP_NUM_THREADS=$i
+
+	for j in 1 2 3 4 5; do
+	./solver
+	./omp_solver
+	./omp_solver_static
+	./omp_solver_dynamic
+	./omp_solver_guided;
+	done
+done
