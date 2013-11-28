@@ -8,7 +8,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define N 500
+#define N 3
 
 double ** A;
 
@@ -41,7 +41,10 @@ MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 //for static allocation
 chunk_size=floor(n/world_size); //the base chunk size
+printf("%d",chunk_size); //should be 1
 biggers=n-chunk_size*world_size; //if your rank is < biggers, you work on chunk_size+1 rows
+printf("%d",biggers);
+//should be 1
 
 
    for (for_iters=1;for_iters<21;for_iters++) 
@@ -50,11 +53,12 @@ biggers=n-chunk_size*world_size; //if your rank is < biggers, you work on chunk_
      tdiff = 0.0;
 //master
 if(MyRank==0){
-  if(MyRank<biggers){int mywork=chunk_size+1;} else{int mywork=chunk_size;}
+  if(MyRank<biggers){mywork=chunk_size+1;} else{mywork=chunk_size;}
+printf("%d",mywork); 
   //MPI_Send(*message, size, type, dest, tag, comm)
   MPI_Send(&A[mywork][0],(N+2)*sizeof(double *), MPI_DOUBLE, 1, 1, MPI_COMM_WORLD);
-  MPI_Recv(&A[mywork+1][0],(N+2)*sizeof(double *), MPI_DOUBLE, 2, 1, MPI_COMM_WORLD, &status);
-     for (i=1;i<=mywork;i++)
+  MPI_Recv(&A[mywork+1][0],(N+2)*sizeof(double *), MPI_DOUBLE, 1, 1, MPI_COMM_WORLD, &status);
+     for (i=1;i<mywork;i++)
      {
        for (j=1;j<n;j++)
        {
@@ -66,16 +70,16 @@ if(MyRank==0){
 } else{
 //slaves
 //if rank<biggers, work on chunksize+1
-if(MyRank<biggers){int mywork=chunk_size+1; int mystart=(MyRank+1)*(mywork);} 
-else{int mywork=chunk_size; int mystart=(MyRank+1)*(mywork)+biggers;}
+if(MyRank<biggers){mywork=chunk_size+1; mystart=(MyRank+1)*(mywork);} 
+else{mywork=chunk_size; mystart=(MyRank+1)*(mywork)+biggers;}
   //send your beginning stuff to your upstairs neighbor, grab his shit too
   MPI_Send(&A[mystart][0],(N+2)*sizeof(double *), MPI_DOUBLE, MyRank-1, 1, MPI_COMM_WORLD);
   MPI_Recv(&A[mystart-1][0],(N+2)*sizeof(double *), MPI_DOUBLE, MyRank-1, 1, MPI_COMM_WORLD, &status);
   //send your ending stuff to your downstairs neighbor, grab his too, unless you're the last guy
-  if(MyRank!=world_size-1){
+  if(MyRank<world_size-1){
   MPI_Send(&A[mystart+mywork][0],(N+2)*sizeof(double *), MPI_DOUBLE, MyRank+1, 1, MPI_COMM_WORLD);
   MPI_Recv(&A[mystart+mywork+1][0],(N+2)*sizeof(double *), MPI_DOUBLE, MyRank+1, 1, MPI_COMM_WORLD, &status);}
-     for (i=mystart;i<=mystart+mywork;i++)
+     for (i=mystart;i<mystart+mywork;i++)
      {
        for (j=1;j<n;j++)
        {
