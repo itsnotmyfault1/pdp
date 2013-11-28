@@ -31,11 +31,11 @@ void solve(double **A, int n)
    int convergence=FALSE;
    double diff,tdiff, tmp;
    int i,j, iters=0;
-   int for_iters, chunk_size, biggers;
+   int for_iters, chunk_size, biggers,mywork,mystart;
 //start doing mpi things here
 int MyRank, world_size;
 MPI_Status status;
-MPI_Init(&argc, &argv);
+MPI_Init(0,0);
 MPI_Comm_rank(MPI_COMM_WORLD, &MyRank);
 MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
@@ -87,7 +87,7 @@ else{int mywork=chunk_size; int mystart=(MyRank+1)*(mywork)+biggers;}
 }
      iters++;
 
-     MPI_Reduce(&diff, tdiff, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
+     MPI_Reduce(&diff, &tdiff, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
      if (tdiff/((double)N*(double)N) < Tolerance)
        convergence=TRUE;
 
